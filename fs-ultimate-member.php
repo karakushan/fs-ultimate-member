@@ -48,8 +48,6 @@ function um_account_content_hook_mytab( $output ) {
 	$current_user = wp_get_current_user();
 
 	?>
-  <div class="um-account-heading uimob340-hide uimob500-hide"><i class="um-faicon-shopping-cart"></i>Мои заказы</div>
-
   <div class="um-field">
     <table class="table table-striped">
       <thead>
@@ -65,7 +63,8 @@ function um_account_content_hook_mytab( $output ) {
 
 	  <?php if ( $user_orders->have_posts() ) : while ( $user_orders->have_posts() ) : $user_orders->the_post();
 		  global $post;
-		  $order = FS\FS_Orders_Class::get_order( $post->ID )
+		  $class_orders = new FS\FS_Orders_Class;
+		  $order        = $class_orders->get_order( $post->ID )
 		  ?>
         <tr>
           <td><?php the_ID(); ?></td>
