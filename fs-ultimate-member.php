@@ -1,19 +1,33 @@
 <?php
-/**
- * @package FS Ultimate Member
- * @version 1.0
- */
 /*
 Plugin Name: FS Ultimate Member
 Plugin URI: https://f-shop.top/
-Description: интеграция с плагином Ultimate Member
+Description: Этот плагин добавляет личный кабинет Ultimate Member в ваш интернет магазин на F-SHOP
 Author: Vitaliy Karakushan
-Version: 1.0
+Version: 1.1
 Author URI: https://f-shop.top/
 */
 
+/*
+Copyright 2016 Vitaliy Karakushan  (email : karakushan@gmail.com)
 
-/* add new tab called "mytab" */
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License, version 2, as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+use FS\FS_Orders_Class;
+use FS\FS_Payment_Class;
+
 
 add_filter( 'um_account_page_default_tabs_hook', 'my_custom_tab_in_um', 100 );
 function my_custom_tab_in_um( $tabs ) {
@@ -24,7 +38,6 @@ function my_custom_tab_in_um( $tabs ) {
 	return $tabs;
 }
 
-/* make our new tab hookable */
 
 add_action( 'um_account_tab__orders', 'um_account_tab__mytab' );
 function um_account_tab__mytab( $info ) {
@@ -37,54 +50,51 @@ function um_account_tab__mytab( $info ) {
 	}
 }
 
-/* Finally we add some content in the tab */
 
 add_filter( 'um_account_content_hook_orders', 'um_account_content_hook_mytab' );
 function um_account_content_hook_mytab( $output ) {
 	ob_start();
-
-	$user_orders  = \FS\FS_Orders_Class::get_user_orders();
-	$payment      = new FS\FS_Payment_Class();
+	$orders_class = new FS_Orders_Class();
+	$user_orders  = $orders_class->get_user_orders();
+	$payment      = new FS_Payment_Class();
 	$current_user = wp_get_current_user();
 
 	?>
-  <div class="um-field">
-    <table class="table table-striped">
-      <thead>
-      <tr>
-        <td>№</td>
-        <td>Дата</td>
-        <td>Сумма</td>
-        <td>Статус</td>
-        <td>Детали</td>
-      </tr>
-      </thead>
-      <tbody>
+    <div class="um-field">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <td>№</td>
+                <td>Дата</td>
+                <td>Сумма</td>
+                <td>Статус</td>
+                <td>Детали</td>
+            </tr>
+            </thead>
+            <tbody>
 
-	  <?php if ( $user_orders->have_posts() ) : while ( $user_orders->have_posts() ) : $user_orders->the_post();
-		  global $post;
-		  $class_orders = new FS\FS_Orders_Class;
-		  $order        = $class_orders->get_order( $post->ID )
-		  ?>
-        <tr>
-          <td><?php the_ID(); ?></td>
-          <td><?php the_time( 'd.m.Y' ) ?></td>
-          <td><?php echo $order->sum ?><?php echo fs_currency() ?></td>
-          <td><?php echo $order->status ?></td>
-          <td><a
-              href="<?php echo esc_url( add_query_arg( array( 'order_detail' => $post->ID ), get_permalink( fs_option( 'page_order_detail' ) ) ) ) ?>"
-              class="fs-order-detail">Детали</a></td>
-        </tr>
-	  <?php endwhile;
-		  wp_reset_query(); ?>
-	  <?php else: ?>
-	  <?php endif; ?>
+			<?php if ( count( $user_orders ) ) : foreach ( $user_orders as $order ) :
+				setup_postdata( $order );
+				global $post;
+				$order = $orders_class->get_order( $order->ID )
+				?>
+                <tr>
+                    <td><?php the_ID(); ?></td>
+                    <td><?php the_time( 'd.m.Y' ) ?></td>
+                    <td><?php echo $order->sum ?><?php echo fs_currency() ?></td>
+                    <td><?php echo $order->status ?></td>
+                    <td>
+                        <a href="<?php echo esc_url( add_query_arg( array( 'order_detail' => $post->ID ), get_permalink( fs_option( 'page_order_detail' ) ) ) ) ?>"
+                           class="fs-order-detail">Детали</a></td>
+                </tr>
+			<?php
+			endforeach; endif; ?>
 
-      </tbody>
+            </tbody>
 
-    </table>
+        </table>
 
-  </div>
+    </div>
 
 	<?php
 
