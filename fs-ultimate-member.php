@@ -76,13 +76,14 @@ function um_account_content_hook_mytab( $output ) {
 			<?php if ( count( $user_orders ) ) : foreach ( $user_orders as $order ) :
 				setup_postdata( $order );
 				global $post;
-				$order = $orders_class->get_order( $order->ID )
+				$order = $orders_class->get_order( $order->ID );
+//				fs_debug_data($order,'$order','print_r');
 				?>
                 <tr>
                     <td><?php the_ID(); ?></td>
                     <td><?php the_time( 'd.m.Y' ) ?></td>
-                    <td><?php echo $order->sum ?><?php echo fs_currency() ?></td>
-                    <td><?php echo $order->status ?></td>
+                    <td><?php printf('%s <span>%s</span>',$order->data->_amount,fs_currency()) ?></td>
+                    <td><?php echo esc_html(get_post_status($order->ID)) ?></td>
                     <td>
                         <a href="<?php echo esc_url( add_query_arg( array( 'order_detail' => $post->ID ), get_permalink( fs_option( 'page_order_detail' ) ) ) ) ?>"
                            class="fs-order-detail">Детали</a></td>
